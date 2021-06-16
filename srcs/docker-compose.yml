@@ -1,0 +1,91 @@
+version: "3"
+services:
+#nginx
+  nginx:
+    container_name: nginx
+    build: ./nginx/
+    restart: always
+    ports:
+      - 443:443
+    volumes:
+      - /home/omillan/data/wordpress:/var/www/wordpress
+    networks:
+      - one-net
+    depends_on:
+      - wordpress
+      - my_site
+#wordpress
+  wordpress:
+    container_name: wordpress
+    build: ./wordpress/
+    restart: always
+    volumes:
+      - /home/omillan/data/wordpress:/var/www/wordpress
+    env_file:
+      - .env
+    networks:
+      - one-net
+    depends_on:
+      - mysql
+#mysql
+  mysql:
+    container_name: mysql
+    build: ./mysql/
+    restart: always
+    volumes:
+      - /home/omillan/data/mysql:/var/lib/mysql
+    env_file:
+      - .env
+    networks:
+      - one-net
+#ftp
+  ftp:
+    container_name: ftp
+    build: ./ftp/
+    restart: always
+    ports:
+      - 21000:21000
+      - "21:21"
+    volumes:
+      - /home/omillan/data/wordpress:/home/omillan
+    networks:
+      - one-net
+    depends_on:
+      - wordpress
+#adminer
+  adminer:
+    container_name: adminer
+    build: ./adminer/
+    restart: always
+    networks:
+      - one-net
+    depends_on:
+      - wordpress
+#redis
+  redis:
+    container_name: redis
+    build: ./redis/
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - one-net
+#my_site
+  my_site:
+    container_name: my_site
+    build: ./my_site/
+    restart: always
+    networks:
+      - one-net
+#storage-server for my_site
+  storage:
+    container_name: storage
+    build: ./storage/
+    restart: always
+    volumes:
+      - /home/omillan/data/my_site_storage:/var/www/storage
+    networks:
+      - one-net
+networks:
+  one-net:
+    driver: bridge
