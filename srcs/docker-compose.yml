@@ -1,14 +1,40 @@
-version: "3"
+version: "3.7"
+volumes:
+    wordpress:
+        name: wordpress
+        driver_opts:
+            type: none
+            o: bind
+            device: /home/omillan/data/wordpress
+    mysql:
+        name: mysql
+        driver_opts:
+            type: none
+            o: bind
+            device: /home/omillan/data/mysql
+    my_site_storage:
+        name: wordpress
+        driver_opts:
+            type: none
+            o: bind
+            device: /home/omillan/data/my_site_storage
+
+networks:
+  one-net:
+    name: one-net
+
 services:
 #nginx
   nginx:
     container_name: nginx
-    build: ./nginx/
+    build:
+      context: ./nginx
+    image: nginx 
     restart: always
     ports:
       - 443:443
     volumes:
-      - /home/omillan/data/wordpress:/var/www/wordpress
+      - wordpress:/var/www/wordpress
     networks:
       - one-net
     depends_on:
@@ -17,10 +43,12 @@ services:
 #wordpress
   wordpress:
     container_name: wordpress
-    build: ./wordpress/
+    build:
+      context: ./wordpress
+    image: wordpress 
     restart: always
     volumes:
-      - /home/omillan/data/wordpress:/var/www/wordpress
+      - wordpress:/var/www/wordpress
     env_file:
       - .env
     networks:
@@ -30,10 +58,12 @@ services:
 #mysql
   mysql:
     container_name: mysql
-    build: ./mysql/
+    build:
+      context: ./mysql
+    image: mysql
     restart: always
     volumes:
-      - /home/omillan/data/mysql:/var/lib/mysql
+      - mysql:/var/lib/mysql
     env_file:
       - .env
     networks:
@@ -41,13 +71,15 @@ services:
 #ftp
   ftp:
     container_name: ftp
-    build: ./ftp/
+    build: 
+      context: ./ftp
+    image: ftp
     restart: always
     ports:
       - 21000:21000
       - "21:21"
     volumes:
-      - /home/omillan/data/wordpress:/home/omillan
+      - wordpress:/home/omillan
     networks:
       - one-net
     depends_on:
@@ -55,7 +87,9 @@ services:
 #adminer
   adminer:
     container_name: adminer
-    build: ./adminer/
+    build: 
+      context: ./adminer
+    image: adminer
     restart: always
     networks:
       - one-net
@@ -64,7 +98,9 @@ services:
 #redis
   redis:
     container_name: redis
-    build: ./redis/
+    build: 
+      context: ./redis
+    image: redis
     restart: always
     ports:
       - "6379:6379"
@@ -73,19 +109,20 @@ services:
 #my_site
   my_site:
     container_name: my_site
-    build: ./my_site/
+    build:
+      context: ./my_site
+    image: my_site
     restart: always
     networks:
       - one-net
 #storage-server for my_site
   storage:
     container_name: storage
-    build: ./storage/
+    build:
+      context: ./storage
+    image: storage
     restart: always
     volumes:
-      - /home/omillan/data/my_site_storage:/var/www/storage
+      - my_site_storage:/var/www/storage
     networks:
       - one-net
-networks:
-  one-net:
-    driver: bridge
