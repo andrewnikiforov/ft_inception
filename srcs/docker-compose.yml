@@ -1,28 +1,34 @@
-version: "3.7"
+version: "3"
+#volumes
 volumes:
-    wordpress:
-        name: wordpress
-        driver_opts:
-            type: none
-            o: bind
-            device: /home/omillan/data/wordpress
-    mysql:
-        name: mysql
-        driver_opts:
-            type: none
-            o: bind
-            device: /home/omillan/data/mysql
-    my_site_storage:
-        name: wordpress
-        driver_opts:
-            type: none
-            o: bind
-            device: /home/omillan/data/my_site_storage
+  wordpress:
+    name: wordpress
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/omillan/data/wordpress
+      o: bind
+  mysql:
+    name: mysql
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/omillan/data/mysql
+      o: bind
+  my_site_storage:
+    name: my_site_storage
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/omillan/data/my_site_storage
+      o: bind
 
+#network
 networks:
   one-net:
     name: one-net
 
+#servisec
 services:
 #nginx
   nginx:
@@ -49,12 +55,16 @@ services:
     restart: always
     volumes:
       - wordpress:/var/www/wordpress
-    env_file:
-      - .env
     networks:
       - one-net
     depends_on:
       - mysql
+    environment:
+      - WP_DB_NAME=${WP_DB_NAME}
+      - WP_DB_USER=${WP_DB_USER}
+      - WP_DB_USER_PASSWORD=${WP_DB_USER_PASSWORD}
+      - WP_DB_HOST=${WP_DB_HOST}
+
 #mysql
   mysql:
     container_name: mysql
@@ -64,10 +74,14 @@ services:
     restart: always
     volumes:
       - mysql:/var/lib/mysql
-    env_file:
-      - .env
     networks:
       - one-net
+    environment:
+      - MYSQL_DB_NAME=${MYSQL_DB_NAME}
+      - MYSQL_DB_USER=${MYSQL_DB_USER}
+      - MYSQL_DB_USER_PASSWORD=${MYSQL_DB_USER_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - DOCKER_NETWORK=${DOCKER_NETWORK}
 #ftp
   ftp:
     container_name: ftp
